@@ -63,6 +63,15 @@ custom_read() {
 	$ENABLE_LOGGING && echo "$answer" >>log.txt
 }
 
+check_dependencies() {
+	custom_print "debug" "Checking for missing dependencies..."
+	command -v distrobox > /dev/null || { has_distrobox=false; }
+	command -v curl      > /dev/null || {      has_curl=false; }
+	command -v podman    > /dev/null || {    has_podman=false; }
+	command -v docker    > /dev/null || {    has_docker=false; }
+	custom_print "debug" "Here are the results: has_distrobox=$has_distrobox, has_curl=$has_curl, has_podman=$has_podman, has_docker:$has_docker"
+}
+
 custom_print "debug" "########## STARTING THE SCRIPT ##########"
 
 # Checking for sudo privileges
@@ -86,12 +95,7 @@ has_podman=true
 has_docker=true
 has_distrobox=true
 
-custom_print "debug" "Checking for missing dependencies..."
-command -v distrobox > /dev/null || { has_distrobox=false; }
-command -v curl      > /dev/null || {      has_curl=false; }
-command -v podman    > /dev/null || {    has_podman=false; }
-command -v docker    > /dev/null || {    has_docker=false; }
-custom_print "debug" "Here are the results: has_distrobox=$has_distrobox, has_curl=$has_curl, has_podman=$has_podman, has_docker:$has_docker"
+check_dependencies
 
 # Missing dependencies prompt
 $has_distrobox && $has_curl && ( $has_podman || $has_docker ) || {
