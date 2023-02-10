@@ -15,7 +15,7 @@ custom_print() {
 		$ENABLE_LOGGING && printf "\e[1;31m[ ERROR ]\e[0m %s\n" "$2" >>log.txt
 	} ;;
 	"information") {
-		printf "\e[1;34m[ INFORMATION ]\e[0m %s\n" "$2" # Blue
+		printf "\e[1;34m[ INFOR ]\e[0m %s\n" "$2" # Blue
 		$ENABLE_LOGGING && printf "\e[1;34m[ INFORMATION ]\e[0m %s\n" "$2" >>log.txt
 	} ;;
 	*) {
@@ -72,6 +72,15 @@ check_dependencies() {
 	custom_print "debug" "Here are the results: has_distrobox=$has_distrobox, has_curl=$has_curl, has_podman=$has_podman, has_docker:$has_docker"
 }
 
+determine_install_command() {
+	# $1 = distribution (Ubuntu, Fedora, Debian, Alpine, ...) TODO: Add support for more distros
+	local distribution
+	distribution="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+	[[ $distribution =~ ^(ubuntu|xubuntu|debian)$ ]] && echo "apt install -y"
+	[[ $distribution =~ ^(alpine)$ ]] && echo "apk --update add"
+	[[ $distribution =~ ^(fedora)$ ]] && echo "dnf install -y"
+}
+
 custom_print "debug" "########## STARTING THE SCRIPT ##########"
 
 # Checking for sudo privileges
@@ -110,6 +119,16 @@ check_dependencies
 		missing_dependencies="${missing_dependencies} podman, docker (optional)";
 	}
 	custom_print "error" "Missing dependencies:$missing_dependencies."
+	
+	# Installing missing dependencies
+
+	$has_curl || {
+		[ "$(custom_read "yesno" "Install curl automatically? [y/n] ")" = "y" ] && {
+			custom_print "information" "Installing curl, this may take a while..."
+			custom_print "debug" "$(determine_install_command "$distribution_name") curl"
+		}
+	}
+	
 }
 
 
