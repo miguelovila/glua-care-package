@@ -27,7 +27,7 @@ custom_print() {
 
 custom_read() {
 	# $1 = type (yesno, range, *); $2 = content; $3 = lower; $4 = upper
-	$ENABLE_LOGGING && printf "\e[1;32m[ INPUT ]\e[0m %s\n" "$2" >>log.txt
+	$ENABLE_LOGGING && printf "\e[1;32m[ INPUT ]\e[0m %s " "$2" >>log.txt
 
 	local answer
 
