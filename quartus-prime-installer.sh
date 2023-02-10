@@ -3,31 +3,70 @@
 ENABLE_DEBUGGING=true
 ENABLE_LOGGING=true
 
-custom_print () {
-	# $1 = type (info, error, debug); $2 = content
-  case "$1" in
-		"debug" ) {
-			$ENABLE_DEBUGGING && printf "\e[1;33m[ DEBUG ]\e[0m %s\n" "$2" # Yellow
-			$ENABLE_LOGGING && printf "\e[1;33m[ DEBUG ]\e[0m %s\n" "$2">> log.txt
-		} ;;
-		"error" ) {
-			printf "\e[1;31m[ ERROR ]\e[0m %s\n" "$2"  # Red
-			$ENABLE_LOGGING && printf "\e[1;31m[ ERROR ]\e[0m %s\n" "$2" >> log.txt
-		} ;;
-		"information" ) {
-			printf "\e[1;34m[ INFORMATION ]\e[0m %s\n" "$2" # Blue
-			$ENABLE_LOGGING && printf "\e[1;34m[ INFORMATION ]\e[0m %s\n" "$2">> log.txt
-		} ;;
-		*       ) {
-			printf "\e[1;35m[ $1 ]\e[0m %s\n" "$2" # Magenta
-			$ENABLE_LOGGING && printf "\e[1;35m[ $1 ]\e[0m %s\n" "$2" >> log.txt
-		} ;;
+custom_print() {
+	# $1 = type (info, error, debug, *); $2 = content
+	case "$1" in
+	"debug") {
+		$ENABLE_DEBUGGING && printf "\e[1;33m[ DEBUG ]\e[0m %s\n" "$2" # Yellow
+		$ENABLE_LOGGING && printf "\e[1;33m[ DEBUG ]\e[0m %s\n" "$2" >>log.txt
+	} ;;
+	"error") {
+		printf "\e[1;31m[ ERROR ]\e[0m %s\n" "$2" # Red
+		$ENABLE_LOGGING && printf "\e[1;31m[ ERROR ]\e[0m %s\n" "$2" >>log.txt
+	} ;;
+	"information") {
+		printf "\e[1;34m[ INFORMATION ]\e[0m %s\n" "$2" # Blue
+		$ENABLE_LOGGING && printf "\e[1;34m[ INFORMATION ]\e[0m %s\n" "$2" >>log.txt
+	} ;;
+	*) {
+		printf "\e[1;35m[ $1 ]\e[0m %s\n" "$2" # Magenta
+		$ENABLE_LOGGING && printf "\e[1;35m[ $1 ]\e[0m %s\n" "$2" >>log.txt
+	} ;;
 	esac
 }
 
-custom_print "error" "Error test"
-custom_print "information" "Info test"
-custom_print "other" "Other test"
+custom_read() {
+	# $1 = type (yesno, range, *); $2 = content; $3 = lower; $4 = upper
+	$ENABLE_LOGGING && printf "\e[1;32m[ INPUT ]\e[0m %s\n" "$2" >>log.txt
+
+	local answer
+
+	case "$1" in
+	"yesno") {
+		while true; do
+			read -rp "$(echo -e "\e[1;32m[ INPUT ]\e[0m $2")" answer
+			case $answer in
+			[yY]) {
+				answer="y"
+				break
+			} ;;
+			[nN]) {
+				answer="n"
+				break
+			} ;;
+			esac
+		done
+	} ;;
+	"range") {
+		while true; do
+			read -rp "$(echo -e "\e[1;32m[ INPUT ]\e[0m $2")" answer
+			[[ $answer == ?(-)+([0-9]) ]] && (($3 <= answer)) && ((answer <= $4)) && {
+				break
+			}
+		done
+	} ;;
+	*) {
+		read -rp "$(echo -e "\e[1;32m[ INPUT ]\e[0m $2")" answer
+	} ;;
+	esac
+	echo "$answer"
+	$ENABLE_LOGGING && echo "$answer" >>log.txt
+}
+
+echo ">>>> $(custom_read "yesno" "Tenho uma faca? [y/n] ")"
+echo ">>>> $(custom_read "range" "Nível de estupidez? [0-5] " 0 5)"
+echo ">>>> $(custom_read "pergunta" "Cães ou gatos? ")"
+custom_print "OUTRO" "Teste simples"
 
 exit 0
 
@@ -67,13 +106,13 @@ exit 0
 #		missing_dependencies="${missing_dependencies}\e[1:1m podman, docker (optional)\e[0m";
 #	}
 #	echo -e "\e[1;31m[ Error ]\e[0m Missing dependencies:$missing_dependencies.";
-#	
+#
 #	# Installing missing dependencies
 #	$has_curl || {
 #		$DEBUG && { echo -e "\e[1;33m[ Debug ]\e[0m Asking to install curl..."; };
 #		while true; do
 #			read -rp $'\e[1;32m[ Input ]\e[0m Install curl automatically? [y/n] ' yn
-#			case $yn in 
+#			case $yn in
 #				[yY] )
 #					has_curl=true
 #					echo -e "\e[1;34m[  Log  ]\e[0m Installing curl, it may take a while.";
@@ -105,7 +144,7 @@ exit 0
 #		$DEBUG && { echo -e "\e[1;33m[ Debug ]\e[0m Asking to install distrobox..."; };
 #		while true; do
 #			read -rp $'\e[1;32m[ Input ]\e[0m Install distrobox automatically? [y/n] ' yn
-#			case $yn in 
+#			case $yn in
 #				[yY] )
 #					has_distrobox=true
 #					echo -e "\e[1;34m[  Log  ]\e[0m Installing distrobox, it may take a while.";
