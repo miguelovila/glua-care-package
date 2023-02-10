@@ -98,7 +98,7 @@ has_distrobox=true
 check_dependencies
 
 # Missing dependencies prompt
-$has_distrobox && $has_curl && ( $has_podman || $has_docker ) || {
+( $has_distrobox && $has_curl && ( $has_podman || $has_docker ) ) || {
 	missing_dependencies=""
 	$has_distrobox || { missing_dependencies="${missing_dependencies} distrobox"; }
 	$has_curl || {
