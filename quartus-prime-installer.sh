@@ -7,20 +7,20 @@ custom_print () {
 	# $1 = type (info, error, debug); $2 = content
   case "$1" in
 		"debug" ) {
-			$ENABLE_DEBUGGING && printf "\e[1;33m[ DEBUG ]\e[0m $2\n" # Yellow
-			$ENABLE_LOGGING && printf "\e[1;33m[ DEBUG ]\e[0m $2\n" >> log.txt
+			$ENABLE_DEBUGGING && printf "\e[1;33m[ DEBUG ]\e[0m %s\n" "$2" # Yellow
+			$ENABLE_LOGGING && printf "\e[1;33m[ DEBUG ]\e[0m %s\n" "$2">> log.txt
 		} ;;
 		"error" ) {
-			printf "\e[1;31m[ ERROR ]\e[0m $2\n"  # Red
-			$ENABLE_LOGGING && printf "\e[1;31m[ ERROR ]\e[0m $2\n" >> log.txt
+			printf "\e[1;31m[ ERROR ]\e[0m %s\n" "$2"  # Red
+			$ENABLE_LOGGING && printf "\e[1;31m[ ERROR ]\e[0m %s\n" "$2" >> log.txt
 		} ;;
 		"information" ) {
-			printf "\e[1;34m[ INFORMATION ]\e[0m $2\n" # Blue
-			$ENABLE_LOGGING && printf "\e[1;34m[ INFORMATION ]\e[0m $2\n" >> log.txt
+			printf "\e[1;34m[ INFORMATION ]\e[0m %s\n" "$2" # Blue
+			$ENABLE_LOGGING && printf "\e[1;34m[ INFORMATION ]\e[0m %s\n" "$2">> log.txt
 		} ;;
 		*       ) {
-			printf "\e[1;35m[ $1 ]\e[0m $2\n" # Magenta
-			$ENABLE_LOGGING && printf "\e[1;35m[ $1 ]\e[0m $2\n" >> log.txt
+			printf "\e[1;35m[ $1 ]\e[0m %s\n" "$2" # Magenta
+			$ENABLE_LOGGING && printf "\e[1;35m[ $1 ]\e[0m %s\n" "$2" >> log.txt
 		} ;;
 	esac
 }
