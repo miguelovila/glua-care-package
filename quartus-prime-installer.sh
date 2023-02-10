@@ -63,27 +63,22 @@ custom_read() {
 	$ENABLE_LOGGING && echo "$answer" >>log.txt
 }
 
-echo ">>>> $(custom_read "yesno" "Tenho uma faca? [y/n] ")"
-echo ">>>> $(custom_read "range" "Nível de estupidez? [0-5] " 0 5)"
-echo ">>>> $(custom_read "pergunta" "Cães ou gatos? ")"
-custom_print "OUTRO" "Teste simples"
-
-exit 0
+custom_print "debug" "########## STARTING THE SCRIPT ##########"
 
 # Checking for sudo privileges
-#$DEBUG && { echo -e "\e[1;33m[ Debug ]\e[0m Checking for sudo privileges..."; };
-#[ "$(id -u)" == 0 ] || {
-#    echo -e "\e[1;31m[ Error ]\e[0m Execute this script with sudo privileges.";
-#    exit 1;
-#}
-#$DEBUG && { echo -e "\e[1;33m[ Debug ]\e[0m It's a super user!"; };
-#
-## Checking for missing dependencies and compatibility
-#$DEBUG && { echo -e "\e[1;33m[ Debug ]\e[0m Checking where I'm running..."; };
-#os_distro_name="$(lsb_release -is)"
-#os_distro_release="$(lsb_release -sr)"
-#$DEBUG && { echo -e "\e[1;33m[ Debug ]\e[0m I'm running in a $os_distro_name $os_distro_release machine!"; };
-#
+custom_print "debug" "Checking for sudo privileges..."
+[ "$(id -u)" == 0 ] || {
+    custom_print "error" "Execute this script with sudo privileges."
+    exit 1;
+}
+custom_print "debug" "I'm running as a super user!"
+
+# Checking for compatibility TODO: verify from a list of tested distros 
+custom_print "debug" "Checking where I'm running..."
+distribution_name="$(lsb_release -is)"; distribution_release="$(lsb_release -sr)"
+custom_print "debug" "I'm running in a $distribution_name $distribution_release machine!"
+
+# Checking for missing dependencies
 #has_distrobox=true
 #has_curl=true
 #has_podman=true
