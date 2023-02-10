@@ -94,16 +94,22 @@ command -v docker    > /dev/null || {    has_docker=false; }
 custom_print "debug" "Here are the results: has_distrobox=$has_distrobox, has_curl=$has_curl, has_podman=$has_podman, has_docker:$has_docker"
 
 # Missing dependencies prompt
-#$has_distrobox && $has_curl && ( $has_podman || $has_docker ) || {
-#	missing_dependencies=""
-#	$has_distrobox || { missing_dependencies="${missing_dependencies}\e[1:1m distrobox\e[0m"; }
-#	$has_curl || { missing_dependencies="${missing_dependencies}\e[1:1m curl\e[0m"; }
-#	$has_podman || $has_docker || {
-#		[ -z "$missing_dependencies" ] || { missing_dependencies="${missing_dependencies},"; }
-#		missing_dependencies="${missing_dependencies}\e[1:1m podman, docker (optional)\e[0m";
-#	}
-#	echo -e "\e[1;31m[ Error ]\e[0m Missing dependencies:$missing_dependencies.";
-#
+$has_distrobox && $has_curl && ( $has_podman || $has_docker ) || {
+	missing_dependencies=""
+	$has_distrobox || { missing_dependencies="${missing_dependencies} distrobox"; }
+	$has_curl || {
+		[ -z "$missing_dependencies" ] || missing_dependencies="${missing_dependencies},"
+		missing_dependencies="${missing_dependencies} curl";
+	}
+	$has_podman || $has_docker || {
+		[ -z "$missing_dependencies" ] || missing_dependencies="${missing_dependencies},"
+		missing_dependencies="${missing_dependencies} podman, docker (optional)";
+	}
+	custom_print "error" "Missing dependencies:$missing_dependencies."
+}
+
+
+
 #	# Installing missing dependencies
 #	$has_curl || {
 #		$DEBUG && { echo -e "\e[1;33m[ Debug ]\e[0m Asking to install curl..."; };
