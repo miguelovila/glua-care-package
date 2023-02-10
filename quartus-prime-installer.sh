@@ -71,27 +71,29 @@ custom_print "debug" "Checking for sudo privileges..."
     custom_print "error" "Execute this script with sudo privileges."
     exit 1;
 }
-custom_print "debug" "I'm running as a super user!"
+custom_print "debug" "I'm running as a super user"
 
 # Checking for compatibility TODO: verify from a list of tested distros 
 custom_print "debug" "Checking where I'm running..."
-distribution_name="$(lsb_release -is)"; distribution_release="$(lsb_release -sr)"
-custom_print "debug" "I'm running in a $distribution_name $distribution_release machine!"
+distribution_name="$(lsb_release -is)"
+distribution_release="$(lsb_release -sr)"
+custom_print "debug" "I'm running in a $distribution_name $distribution_release machine"
 
 # Checking for missing dependencies
-#has_distrobox=true
-#has_curl=true
-#has_podman=true
-#has_docker=true
-#
-#$DEBUG && { echo -e "\e[1;33m[ Debug ]\e[0m Checking for missing dependencies..."; };
-#command -v distrobox > /dev/null || { has_distrobox=false; }
-#command -v curl > /dev/null || { has_curl=false; }
-#command -v podman > /dev/null || { has_podman=false; }
-#command -v docker > /dev/null || { has_docker=false; }
-#$DEBUG && { echo -e "\e[1;33m[ Debug ]\e[0m I got this: has_distrobox=$has_distrobox, has_curl=$has_curl, has_podman=$has_podman, has_docker:$has_docker!"; };
-#
-## Missing dependencies prompt
+
+has_curl=true
+has_podman=true
+has_docker=true
+has_distrobox=true
+
+custom_print "debug" "Checking for missing dependencies..."
+command -v distrobox > /dev/null || { has_distrobox=false; }
+command -v curl      > /dev/null || {      has_curl=false; }
+command -v podman    > /dev/null || {    has_podman=false; }
+command -v docker    > /dev/null || {    has_docker=false; }
+custom_print "debug" "Here are the results: has_distrobox=$has_distrobox, has_curl=$has_curl, has_podman=$has_podman, has_docker:$has_docker"
+
+# Missing dependencies prompt
 #$has_distrobox && $has_curl && ( $has_podman || $has_docker ) || {
 #	missing_dependencies=""
 #	$has_distrobox || { missing_dependencies="${missing_dependencies}\e[1:1m distrobox\e[0m"; }
