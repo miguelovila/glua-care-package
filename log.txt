@@ -1,0 +1,12 @@
+[1;31m[ ERROR ][0m Error test
+[1;34m[ INFORMATION ] [0m Info test
+[1;35m[ other ] >[0m Other test
+[1;31m[ ERROR ][0m Error test
+[1;34m[ INFORMATION ][0m Info test
+[1;35m[ other ] >[0m Other test
+[1;31m[ ERROR ][0m Error test
+[1;34m[ INFORMATION ][0m Info test
+[1;35m[ other ] >[0m Other test
+[1;31m[ ERROR ][0m Error test
+[1;34m[ INFORMATION ][0m Info test
+[1;35m[ other ][0m Other test
