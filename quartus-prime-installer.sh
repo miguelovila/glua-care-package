@@ -174,4 +174,39 @@ check_dependencies
 			exit 0
 		}
 	}
+	$has_podman || $has_docker || {
+		answer="$(custom_read "range" "Install podman (0 recommended) or docker (1)? [0-1] " "0" "1")"
+		[ "$answer" = "0" ] && {
+			custom_print "information" "Installing podman, this may take a while."
+			while read -r line
+			do
+			    custom_print "debug" "$line"
+			done < <($(determine_install_command "$distribution_name") podman 2>&1)
+			has_podman=true
+			check_dependencies
+			$has_podman || {
+				custom_print "error" "Failed to install podman. Install it manually and try again. Instructions are available here: https://podman.io/getting-started/installation"
+				exit 1
+			}
+			$has_podman && {
+				custom_print "information" "Successfully installed podman."
+			}
+		}
+		[ "$answer" = "1" ] && {
+			custom_print "information" "Installing docker, this may take a while."
+			while read -r line
+			do
+			    custom_print "debug" "$line"
+			done < <($(determine_install_command "$distribution_name") docker.io 2>&1)
+			has_docker=true
+			check_dependencies
+			$has_docker || {
+				custom_print "error" "Failed to install docker. Install it manually and try again. Instructions are available here: https://docs.docker.com/engine/install/"
+				exit 1
+			}
+			$has_docker && {
+				custom_print "information" "Successfully installed docker."
+			}
+		}
+	}
 }
