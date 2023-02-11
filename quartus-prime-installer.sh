@@ -146,64 +146,25 @@ check_dependencies
 			}
 		}
 	}
-
+	$has_distrobox || {
+		[ "$(custom_read "yesno" "Install distrobox automatically? [y/n] ")" = "y" ] && {
+			custom_print "information" "Installing distrobox, this may take a while..."
+			while read -r line
+			do
+			    custom_print "debug" "$line"
+			done < <(curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh 2>&1)
+			has_distrobox=true
+			check_dependencies
+			$has_distrobox || {
+				custom_print "error" "Failed to install distrobox. Please install it manually and try again."
+				exit 1
+			}
+			$has_distrobox && {
+				custom_print "information" "Successfully installed distrobox."
+			}
+		}
+	}
 }
 
-#	# Installing missing dependencies
-#	$has_curl || {
-#		$DEBUG && { echo -e "\e[1;33m[ Debug ]\e[0m Asking to install curl..."; };
-#		while true; do
-#			read -rp $'\e[1;32m[ Input ]\e[0m Install curl automatically? [y/n] ' yn
-#			case $yn in
-#				[yY] )
-#					has_curl=true
-#					echo -e "\e[1;34m[  Log  ]\e[0m Installing curl, it may take a while.";
-#					if [[ $os_distro_name =~ ^(Ubuntu|Lubuntu|Xubuntu|Debian)$ ]]
-#					then
-#    						sudo apt update -y &> /dev/null
-#    						sudo apt install curl -y &> /dev/null
-#					fi
-#					if [[ $os_distro_name =~ ^(Fedora)$ ]]
-#					then
-#    						sudo dnf update -y &> /dev/null
-#    						sudo dnf install curl -y &> /dev/null
-#					fi
-#					command -v curl > /dev/null || { has_curl=false; }
-#					$has_curl || {
-#						echo -e "\e[1;31m[ Error ]\e[0m Unable to install curl. Install it manually and run this script again.";
-#						exit 1;
-#					}
-#					break;;
-#				[nN]   )
-#					echo -e "\e[1;34m[  Log  ]\e[0m Installing curl is required. Install it manually and run this script again.";
-#					exit 0;;
-#				* )
-#			esac
-#
-#		done
-#	};
-#	$has_distrobox || {
-#		$DEBUG && { echo -e "\e[1;33m[ Debug ]\e[0m Asking to install distrobox..."; };
-#		while true; do
-#			read -rp $'\e[1;32m[ Input ]\e[0m Install distrobox automatically? [y/n] ' yn
-#			case $yn in
-#				[yY] )
-#					has_distrobox=true
-#					echo -e "\e[1;34m[  Log  ]\e[0m Installing distrobox, it may take a while.";
-#					curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh &> /dev/null
-#					command -v distrobox > /dev/null || { has_distrobox=false; }
-#					$has_distrobox || {
-#						echo -e "\e[1;31m[ Error ]\e[0m Unable to install distrobox, install it manually and run this script again. Instructions are available here: https://github.com/89luca89/distrobox";
-#						exit 1;
-#					}
-#					break;;
-#				[nN]   )
-#					echo -e "\e[1;34m[  Log  ]\e[0m Installing distrobox is required, install it manually and run this script again. Instructions are available here: https://github.com/89luca89/distrobox";
-#					exit 0;;
-#				* )
-#			esac
-#
-#		done
-#	};
-#	echo "cest fini"
-#}
+# Unable to install distrobox, install it manually and run this script again. Instructions are available here: https://github.com/89luca89/distrobox";
+# Installing distrobox is required, install it manually and run this script again. Instructions are available here: https://github.com/89luca89/distrobox";
