@@ -1,6 +1,10 @@
 #!/bin/bash
 
-ENABLE_DEBUGGING=false
+#
+# CONFIGURATION & FUNCTIONS
+#
+
+ENABLE_DEBUGGING=true
 ENABLE_LOGGING=true
 
 custom_print() {
@@ -65,10 +69,10 @@ custom_read() {
 
 check_dependencies() {
 	custom_print "debug" "Checking for missing dependencies..."
-	command -v distrobox > /dev/null || { has_distrobox=false; }
-	command -v curl      > /dev/null || {      has_curl=false; }
-	command -v podman    > /dev/null || {    has_podman=false; }
-	command -v docker    > /dev/null || {    has_docker=false; }
+	command -v distrobox >/dev/null || { has_distrobox=false; }
+	command -v curl >/dev/null || { has_curl=false; }
+	command -v podman >/dev/null || { has_podman=false; }
+	command -v docker >/dev/null || { has_docker=false; }
 	custom_print "debug" "Here are the results: has_distrobox=$has_distrobox, has_curl=$has_curl, has_podman=$has_podman, has_docker:$has_docker"
 }
 
@@ -81,57 +85,56 @@ determine_install_command() {
 	[[ $distribution =~ ^(fedora)$ ]] && echo "dnf install -y"
 }
 
+#
+# MAIN - START OF THE SCRIPT
+#
+
 custom_print "debug" "########## STARTING THE SCRIPT ##########"
 
 # Checking for sudo privileges
 custom_print "debug" "Checking for sudo privileges..."
 [ "$(id -u)" == 0 ] || {
-    custom_print "error" "Execute this script with sudo privileges."
-    exit 1;
+	custom_print "error" "Execute this script with sudo privileges."
+	exit 1
 }
 custom_print "debug" "I'm running as a super user"
 
-# Checking for compatibility TODO: verify from a list of tested distros 
+# Checking for compatibility TODO: verify from a list of tested distros
 custom_print "debug" "Checking where I'm running..."
 distribution_name="$(lsb_release -is)"
 distribution_release="$(lsb_release -sr)"
 custom_print "debug" "I'm running in a $distribution_name $distribution_release machine"
 
 # Checking for missing dependencies
-
 has_curl=true
 has_podman=true
 has_docker=true
 has_distrobox=true
-
 check_dependencies
 
 # Missing dependencies prompt
-( $has_distrobox && $has_curl && ( $has_podman || $has_docker ) ) || {
+($has_distrobox && $has_curl && ($has_podman || $has_docker)) || {
 	missing_dependencies=""
 	$has_distrobox || { missing_dependencies="${missing_dependencies} distrobox"; }
 	$has_curl || {
 		[ -z "$missing_dependencies" ] || missing_dependencies="${missing_dependencies},"
-		missing_dependencies="${missing_dependencies} curl";
+		missing_dependencies="${missing_dependencies} curl"
 	}
 	$has_podman || $has_docker || {
 		[ -z "$missing_dependencies" ] || missing_dependencies="${missing_dependencies},"
-		missing_dependencies="${missing_dependencies} podman, docker (optional)";
+		missing_dependencies="${missing_dependencies} podman, docker (optional)"
 	}
 	custom_print "error" "Missing dependencies:$missing_dependencies."
-	
-	# Installing missing dependencies
 
+	# Installing missing dependencies
 	$has_curl || {
 		[ "$(custom_read "yesno" "Install curl automatically? [y/n] ")" = "y" ] && {
 			custom_print "information" "Installing curl, this may take a while..."
 			custom_print "debug" "$($(determine_install_command "$distribution_name") curl)"
 		}
 	}
-	
+
 }
-
-
 
 #	# Installing missing dependencies
 #	$has_curl || {
