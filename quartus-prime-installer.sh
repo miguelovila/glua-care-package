@@ -12,26 +12,26 @@ custom_print() {
 	case "$1" in
 	"debug") {
 		$ENABLE_DEBUGGING && printf "\e[1;33m[ DEBUG ]\e[0m %s\n" "$2" # Yellow
-		$ENABLE_LOGGING && printf "\e[1;33m[ DEBUG ]\e[0m %s\n" "$2" >>log.txt
+		$ENABLE_LOGGING && printf "[ DEBUG ] %s\n" "$2" >>log.txt
 	} ;;
 	"error") {
 		printf "\e[1;31m[ ERROR ]\e[0m %s\n" "$2" # Red
-		$ENABLE_LOGGING && printf "\e[1;31m[ ERROR ]\e[0m %s\n" "$2" >>log.txt
+		$ENABLE_LOGGING && printf "[ ERROR ] %s\n" "$2" >>log.txt
 	} ;;
 	"information") {
 		printf "\e[1;34m[ INFOR ]\e[0m %s\n" "$2" # Blue
-		$ENABLE_LOGGING && printf "\e[1;34m[ INFORMATION ]\e[0m %s\n" "$2" >>log.txt
+		$ENABLE_LOGGING && printf "[ INFOR ] %s\n" "$2" >>log.txt
 	} ;;
 	*) {
 		printf "\e[1;35m[ $1 ]\e[0m %s\n" "$2" # Magenta
-		$ENABLE_LOGGING && printf "\e[1;35m[ $1 ]\e[0m %s\n" "$2" >>log.txt
+		$ENABLE_LOGGING && printf "[ $1 ] %s\n" "$2" >>log.txt
 	} ;;
 	esac
 }
 
 custom_read() {
 	# $1 = type (yesno, range, *); $2 = content; $3 = lower; $4 = upper
-	$ENABLE_LOGGING && printf "\e[1;32m[ INPUT ]\e[0m %s" "$2" >>log.txt
+	$ENABLE_LOGGING && printf "[ INPUT ] %s" "$2" >>log.txt
 
 	local answer
 
@@ -89,6 +89,7 @@ determine_install_command() {
 # MAIN - START OF THE SCRIPT
 #
 
+custom_print "debug" ""
 custom_print "debug" "########## STARTING THE SCRIPT ##########"
 
 # Checking for sudo privileges
