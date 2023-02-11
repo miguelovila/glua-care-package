@@ -131,7 +131,19 @@ check_dependencies
 	$has_curl || {
 		[ "$(custom_read "yesno" "Install curl automatically? [y/n] ")" = "y" ] && {
 			custom_print "information" "Installing curl, this may take a while..."
-			custom_print "debug" "$($(determine_install_command "$distribution_name") curl)"
+			while read -r line
+			do
+			    custom_print "debug" "$line"
+			done < <($(determine_install_command "$distribution_name") curl 2>&1)
+			has_curl=true
+			check_dependencies
+			$has_curl || {
+				custom_print "error" "Failed to install curl. Please install it manually and try again."
+				exit 1
+			}
+			$has_curl && {
+				custom_print "information" "Successfully installed curl."
+			}
 		}
 	}
 
