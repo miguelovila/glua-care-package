@@ -129,8 +129,9 @@ check_dependencies
 
 	# Installing missing dependencies
 	$has_curl || {
-		[ "$(custom_read "yesno" "Install curl automatically? [y/n] ")" = "y" ] && {
-			custom_print "information" "Installing curl, this may take a while..."
+		answer="$(custom_read "yesno" "Install curl automatically? [y/n] ")"
+		[ "$answer" = "y" ] && {
+			custom_print "information" "Installing curl, this may take a while."
 			while read -r line
 			do
 			    custom_print "debug" "$line"
@@ -138,17 +139,22 @@ check_dependencies
 			has_curl=true
 			check_dependencies
 			$has_curl || {
-				custom_print "error" "Failed to install curl. Please install it manually and try again."
+				custom_print "error" "Failed to install curl. Install it manually and try again."
 				exit 1
 			}
 			$has_curl && {
 				custom_print "information" "Successfully installed curl."
 			}
 		}
+		[ "$answer" = "n" ] && {
+			custom_print "information" "Installing curl is required. Install it manually and try again."
+			exit 0
+		}
 	}
 	$has_distrobox || {
-		[ "$(custom_read "yesno" "Install distrobox automatically? [y/n] ")" = "y" ] && {
-			custom_print "information" "Installing distrobox, this may take a while..."
+		answer="$(custom_read "yesno" "Install distrobox automatically? [y/n] ")"
+		[ "$answer" = "y" ] && {
+			custom_print "information" "Installing distrobox, this may take a while."
 			while read -r line
 			do
 			    custom_print "debug" "$line"
@@ -156,15 +162,16 @@ check_dependencies
 			has_distrobox=true
 			check_dependencies
 			$has_distrobox || {
-				custom_print "error" "Failed to install distrobox. Please install it manually and try again."
+				custom_print "error" "Failed to install distrobox. Install it manually and try again. Instructions are available here: https://github.com/89luca89/distrobox"
 				exit 1
 			}
 			$has_distrobox && {
 				custom_print "information" "Successfully installed distrobox."
 			}
 		}
+		[ "$answer" = "n" ] && {
+			custom_print "information" "Installing distrobox is required. Install it manually and try again. Instructions are available here: https://github.com/89luca89/distrobox"
+			exit 0
+		}
 	}
 }
-
-# Unable to install distrobox, install it manually and run this script again. Instructions are available here: https://github.com/89luca89/distrobox";
-# Installing distrobox is required, install it manually and run this script again. Instructions are available here: https://github.com/89luca89/distrobox";
