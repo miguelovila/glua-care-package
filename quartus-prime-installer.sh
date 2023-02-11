@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ENABLE_DEBUGGING=true
+ENABLE_DEBUGGING=false
 ENABLE_LOGGING=true
 
 custom_print() {
@@ -125,7 +125,7 @@ check_dependencies
 	$has_curl || {
 		[ "$(custom_read "yesno" "Install curl automatically? [y/n] ")" = "y" ] && {
 			custom_print "information" "Installing curl, this may take a while..."
-			custom_print "debug" "$(determine_install_command "$distribution_name") curl"
+			custom_print "debug" "$($(determine_install_command "$distribution_name") curl)"
 		}
 	}
 	
