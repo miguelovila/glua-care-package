@@ -217,9 +217,31 @@ check_dependencies
 }
 
 # Managing the box MVP
+custom_print "information" "Creating the container, this may take a while."
+while read -r line
+do
+    custom_print "debug" "$line"
+done < <(distrobox-create --image docker.io/library/archlinux:latest --name glua-care-package --yes --no-entry 2>&1)
 
-distrobox-create --image docker.io/library/archlinux:latest --name glua-care-package --yes
-distrobox-enter --name glua-care-package << EOF
+custom_print "information" "Setting up the container, this may take a while."
+while read -r line
+do
+    custom_print "debug" "$line"
+done < <(distrobox-enter --name glua-care-package << EOF
 pacman --version
+sudo pacman -Syu --noconfirm
+sudo pacman -S --needed base-devel git --noconfirm
+
+git clone https://aur.archlinux.org/yay.git
+cd yay
+makepkg -si --noconfirm
+cd ..
+sudo rm -rf yay
+
+yay --version
 exit
 EOF
+)
+
+
+custom_print "information" "End of the script. :)"
