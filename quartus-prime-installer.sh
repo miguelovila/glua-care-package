@@ -80,9 +80,9 @@ determine_install_command() {
 	# $1 = distribution (Ubuntu, Fedora, Debian, Alpine, ...) TODO: Add support for more distros
 	local distribution
 	distribution="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
-	[[ $distribution =~ ^(ubuntu|xubuntu|debian)$ ]] && echo "apt install -y"
-	[[ $distribution =~ ^(alpine)$ ]] && echo "apk --update add"
-	[[ $distribution =~ ^(fedora)$ ]] && echo "dnf install -y"
+	[[ $distribution =~ ^(ubuntu|xubuntu|debian)$ ]] && echo "sudo apt install -y"
+	[[ $distribution =~ ^(alpine)$ ]] && echo "sudo apk --update add"
+	[[ $distribution =~ ^(fedora)$ ]] && echo "sudo dnf install -y"
 }
 
 #
@@ -94,11 +94,11 @@ custom_print "debug" "########## STARTING THE SCRIPT ##########"
 
 # Checking for sudo privileges
 custom_print "debug" "Checking for sudo privileges..."
-[ "$(id -u)" == 0 ] || {
-	custom_print "error" "Execute this script with sudo privileges."
+[ "$(id -u)" == 0 ] && {
+	custom_print "error" "Execute this script without sudo privileges."
 	exit 1
 }
-custom_print "debug" "I'm running as a super user"
+custom_print "debug" "I'm running as a normal user"
 
 # Checking for compatibility TODO: verify from a list of tested distros
 custom_print "debug" "Checking where I'm running..."
@@ -204,9 +204,22 @@ check_dependencies
 				custom_print "error" "Failed to install docker. Install it manually and try again. Instructions are available here: https://docs.docker.com/engine/install/"
 				exit 1
 			}
+			custom_print "debug" "Adding the current user to the docker group."
+			sudo groupadd docker &> /dev/null
+			sudo usermod -aG docker "$USER" &> /dev/null
 			$has_docker && {
 				custom_print "information" "Successfully installed docker."
 			}
+			custom_print "information" "RESTART your computer to fully apply the changes and re-run this script."
+			exit 0
 		}
 	}
 }
+
+# Managing the box MVP
+
+distrobox-create --image docker.io/library/archlinux:latest --name glua-care-package --yes
+distrobox-enter --name glua-care-package << EOF
+pacman --version
+exit
+EOF
