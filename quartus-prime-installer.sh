@@ -215,21 +215,35 @@ check_dependencies
 		}
 	}
 }
-
+#
 # Managing the box MVP
+#
+
+
+# Creating or starting the container
 custom_print "information" "Creating the container, this may take a while."
 while read -r line
 do
     custom_print "debug" "$line"
 done < <(distrobox-create --image docker.io/library/archlinux:latest --name glua-care-package --yes --no-entry 2>&1)
 
+# Setting up the container with git and yay and enabling multilib
 custom_print "information" "Setting up the container, this may take a while."
 while read -r line
 do
-    custom_print "debug" "$line"
-done < <(distrobox-enter --name glua-care-package << EOF
+	custom_print "debug" "$line"
+done < <(distrobox-enter --name glua-care-package 2>&1 << EOF
+
+echo -e "This is the original pacman.conf file:"
+cat /etc/pacman.conf
+grep -qxF '#[multilib]' /etc/pacman.conf || echo '#[multilib]
+#Include = /etc/pacman.d/mirrorlist' | sudo tee -a /etc/pacman.conf
+sudo sed -i "/\[multilib\]/,/Include/"'s/^#//' /etc/pacman.conf
+echo -e "This is the edited pacman.conf file:"
+cat /etc/pacman.conf
+
 pacman --version
-sudo pacman -Syu --noconfirm
+sudo pacman -Syyu --noconfirm
 sudo pacman -S --needed base-devel git --noconfirm
 
 git clone https://aur.archlinux.org/yay.git
@@ -243,5 +257,16 @@ exit
 EOF
 )
 
+# Installing Intel Quartus Prime Lite
+custom_print "information" "Installing Intel Quartus Prime Lite, this may take a while."
+custom_print "information" "Now seriously, this may take a really long while."
+while read -r line
+do
+	custom_print "debug" "$line"
+done < <(distrobox-enter --name glua-care-package 2>&1 << EOF
+yay -S --noconfirm quartus-free-quartus
+exit
+EOF
+)
 
 custom_print "information" "End of the script. :)"
