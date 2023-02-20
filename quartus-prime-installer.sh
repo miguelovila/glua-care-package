@@ -1,37 +1,34 @@
 #!/bin/bash
 
 #
-# CONFIGURATION & FUNCTIONS
+# GLOBAL CONFIGURATION & FUNCTIONS
 #
-
-ENABLE_DEBUGGING=true
-ENABLE_LOGGING=true
 
 custom_print() {
 	# $1 = type (info, error, debug, *); $2 = content
 	case "$1" in
 	"debug") {
-		$ENABLE_DEBUGGING && printf "\e[1;33m[ DEBUG ]\e[0m %s\n" "$2" # Yellow
-		$ENABLE_LOGGING && printf "[ DEBUG ] %s\n" "$2" >>log.txt
+		$enable_debugging && printf "\e[1;33m[ DEBUG ]\e[0m %s\n" "$2" # Yellow
+		$enable_logging && printf "[ DEBUG ] %s\n" "$2" >>log.txt
 	} ;;
 	"error") {
 		printf "\e[1;31m[ ERROR ]\e[0m %s\n" "$2" # Red
-		$ENABLE_LOGGING && printf "[ ERROR ] %s\n" "$2" >>log.txt
+		$enable_logging && printf "[ ERROR ] %s\n" "$2" >>log.txt
 	} ;;
 	"information") {
 		printf "\e[1;34m[ INFOR ]\e[0m %s\n" "$2" # Blue
-		$ENABLE_LOGGING && printf "[ INFOR ] %s\n" "$2" >>log.txt
+		$enable_logging && printf "[ INFOR ] %s\n" "$2" >>log.txt
 	} ;;
 	*) {
 		printf "\e[1;35m[ $1 ]\e[0m %s\n" "$2" # Magenta
-		$ENABLE_LOGGING && printf "[ $1 ] %s\n" "$2" >>log.txt
+		$enable_logging && printf "[ $1 ] %s\n" "$2" >>log.txt
 	} ;;
 	esac
 }
 
 custom_read() {
 	# $1 = type (yesno, range, *); $2 = content; $3 = lower; $4 = upper
-	$ENABLE_LOGGING && printf "[ INPUT ] %s" "$2" >>log.txt
+	$enable_logging && printf "[ INPUT ] %s" "$2" >>log.txt
 
 	local answer
 
@@ -64,8 +61,58 @@ custom_read() {
 	} ;;
 	esac
 	echo "$answer"
-	$ENABLE_LOGGING && echo "$answer" >>log.txt
+	$enable_logging && echo "$answer" >>log.txt
 }
+
+#
+# DEFAULTS
+#
+
+enable_debugging=false # Enable debugging messages
+enable_logging=false # Enable logging everything to a log.txt file
+operation_mode="on-host" # on-host or on-box (default: on-host) 
+
+#
+# ARGUMENT PARSING
+#
+
+while :; do
+	case $1 in
+		-ob | --on-box)
+			shift
+			operation_mode="on-box"
+			;;
+		-oh | --on-host)
+			shift
+			operation_mode="on-host"
+			;;
+		-ed | --enable-debugging)
+			shift
+			enable_debugging=true
+			;;
+		-el | --enable-logging)
+			shift
+			enable_logging=true
+			;;
+		-*)
+			custom_print "error" "Unknown option: $1"
+			exit 1
+			;;
+		*)
+			break
+			;;
+	esac
+done
+
+if [ "${operation_mode}" == "on-host" ]; then
+	ls
+fi
+
+if [ "${operation_mode}" == "on-box" ]; then
+	ls
+fi
+
+exit 0
 
 check_dependencies() {
 	custom_print "debug" "Checking for missing dependencies..."
@@ -86,7 +133,7 @@ determine_install_command() {
 }
 
 #
-# MAIN - START OF THE SCRIPT
+# START OF THE ON HOST SCRIPT
 #
 
 custom_print "debug" ""
