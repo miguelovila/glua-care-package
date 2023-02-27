@@ -5,23 +5,41 @@
 #
 
 custom_print() {
-	# $1 = type (info, error, debug, *); $2 = content
+	# $1 = type (info, error, debug, *); $2 = content (message); $3 = show prefix (true, false)
+	local prefix
+	$3 && {
+		case "$1" in
+		"debug") {
+			prefix="\e[1;33m[ DEBUG ]\e[0m " # Yellow
+		} ;;
+		"error") {
+			prefix="\e[1;31m[ ERROR ]\e[0m " # Red
+		} ;;
+		"information") {
+			prefix="\e[1;34m[ INFOR ]\e[0m " # Blue
+		} ;;
+		*) {
+			prefix="\e[1;35m[ $1 ]\e[0m " # Magenta
+		} ;;
+		esac
+	}
+
 	case "$1" in
 	"debug") {
-		$enable_debugging && printf "\e[1;33m[ DEBUG ]\e[0m %s\n" "$2" # Yellow
-		$enable_logging && printf "[ DEBUG ] %s\n" "$2" >>log.txt
+		$enable_debugging && printf "$prefix%s\n" "$2" # Yellow
+		$enable_logging && printf "$prefix%s\n" "$2" >>log.txt
 	} ;;
 	"error") {
-		printf "\e[1;31m[ ERROR ]\e[0m %s\n" "$2" # Red
-		$enable_logging && printf "[ ERROR ] %s\n" "$2" >>log.txt
+		printf "$prefix%s\n" "$2" # Red
+		$enable_logging && printf "$prefix%s\n%s\n" "$2" >>log.txt
 	} ;;
 	"information") {
-		printf "\e[1;34m[ INFOR ]\e[0m %s\n" "$2" # Blue
-		$enable_logging && printf "[ INFOR ] %s\n" "$2" >>log.txt
+		printf "$prefix%s\n%s\n" "$2" # Blue
+		$enable_logging && printf "$prefix%s\n%s\n" "$2" >>log.txt
 	} ;;
 	*) {
-		printf "\e[1;35m[ $1 ]\e[0m %s\n" "$2" # Magenta
-		$enable_logging && printf "[ $1 ] %s\n" "$2" >>log.txt
+		printf "$prefix%s\n%s\n" "$2" # Magenta
+		$enable_logging && printf "$prefix%s\n%s\n" "$2" >>log.txt
 	} ;;
 	esac
 }
@@ -263,18 +281,25 @@ if [ "${operation_mode}" == "on-host" ]; then
 	    custom_print "debug" "$line"
 	done < <(distrobox-create --image docker.io/library/archlinux:latest --name glua-care-package --yes --no-entry 2>&1)
 
-	# Setting up the container with git and yay and enabling multilib
-	printf " ./quartus-prime-installer.sh -ob" | distrobox-enter --name glua-care-package
+	# Setting up the container with git and yay and enabling multilib TODO: transpose flags to on-box mode
+
+	custom_print "information" "Running the script inside the container, this may take a while."
+	while read -r line
+	do
+		custom_print "debug" "$line"
+	done < <(printf " ./quartus-prime-installer.sh -ob -ed" | distrobox-enter --name glua-care-package 2>&1)
 fi
 
 if [ "${operation_mode}" == "on-box" ]; then
 	custom_print "debug" "Working in on-box mode."
-	pacman --version
+	sudo pacman -Syu git fakeroot base-devel --noconfirm
+	git clone https://aur.archlinux.org/yay-bin.git
+	cd yay-bin || custom_print "error" "Failed to enter yay-bin directory."
+	makepkg -si --noconfirm
+	cd .. || custom_print "error" "Failed to exit yay-bin directory."
+	rm -rf yay-bin
+	yay -Syu quartus-free-devinfo-cyclone --noconfirm
 fi
-
-exit 0
-
-
 
 
 # Setting up the container with git and yay and enabling multilib
