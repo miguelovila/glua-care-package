@@ -82,6 +82,24 @@ custom_read() {
 	$enable_logging && echo "$answer" >>log.txt
 }
 
+check_dependencies() {
+		custom_print "debug" "Checking for missing dependencies..." true
+		command -v distrobox >/dev/null || { has_distrobox=false; }
+		command -v curl >/dev/null || { has_curl=false; }
+		command -v podman >/dev/null || { has_podman=false; }
+		command -v docker >/dev/null || { has_docker=false; }
+		custom_print "debug" "Here are the results: has_distrobox=$has_distrobox, has_curl=$has_curl, has_podman=$has_podman, has_docker:$has_docker" true
+	}
+
+determine_install_command() {
+	# $1 = distribution (Ubuntu, Fedora, Debian, Alpine, ...) TODO: Add support for more distros
+	local distribution
+	distribution="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+	[[ $distribution =~ ^(ubuntu|xubuntu|debian)$ ]] && echo "sudo apt install -y"
+	[[ $distribution =~ ^(alpine)$ ]] && echo "sudo apk --update add"
+	[[ $distribution =~ ^(fedora)$ ]] && echo "sudo dnf install -y"
+}
+
 #
 # DEFAULTS
 #
@@ -126,24 +144,6 @@ custom_print "debug" "" true
 custom_print "debug" "########## STARTING THE SCRIPT ##########" true
 
 if [ "${operation_mode}" == "on-host" ]; then
-	check_dependencies() {
-		custom_print "debug" "Checking for missing dependencies..." true
-		command -v distrobox >/dev/null || { has_distrobox=false; }
-		command -v curl >/dev/null || { has_curl=false; }
-		command -v podman >/dev/null || { has_podman=false; }
-		command -v docker >/dev/null || { has_docker=false; }
-		custom_print "debug" "Here are the results: has_distrobox=$has_distrobox, has_curl=$has_curl, has_podman=$has_podman, has_docker:$has_docker" true
-	}
-
-	determine_install_command() {
-		# $1 = distribution (Ubuntu, Fedora, Debian, Alpine, ...) TODO: Add support for more distros
-		local distribution
-		distribution="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
-		[[ $distribution =~ ^(ubuntu|xubuntu|debian)$ ]] && echo "sudo apt install -y"
-		[[ $distribution =~ ^(alpine)$ ]] && echo "sudo apk --update add"
-		[[ $distribution =~ ^(fedora)$ ]] && echo "sudo dnf install -y"
-	}
-
 	#
 	# START OF THE ON HOST SCRIPT
 	#
@@ -279,7 +279,7 @@ if [ "${operation_mode}" == "on-host" ]; then
 	while read -r line
 	do
 	    custom_print "debug" "$line" true
-	done < <(distrobox-create --image docker.io/library/archlinux:latest --name glua-care-package --yes --no-entry 2>&1)
+	done < <(distrobox-create --image docker.io/library/archlinux:latest --name glua-care-package --yes --no-entry --root 2>&1)
 
 	# Setting up the container with git and yay and enabling multilib TODO: transpose flags to on-box mode
 
@@ -287,7 +287,7 @@ if [ "${operation_mode}" == "on-host" ]; then
 	while read -r line
 	do
 		custom_print " BOX " "$line" true
-	done < <(printf " ./quartus-prime-installer.sh -ob -ed" | distrobox-enter --name glua-care-package 2>&1)
+	done < <(printf " ./gluacp.sh -ob -ed" | distrobox-enter --name glua-care-package 2>&1)
 fi
 
 if [ "${operation_mode}" == "on-box" ]; then
