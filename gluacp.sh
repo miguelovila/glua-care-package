@@ -31,15 +31,15 @@ custom_print() {
 	} ;;
 	"error") {
 		printf "$prefix%s\n" "$2" # Red
-		$enable_logging && printf "$prefix%s\n%s\n" "$2" >>log.txt
+		$enable_logging && printf "$prefix%s\n" "$2" >>log.txt
 	} ;;
 	"information") {
-		printf "$prefix%s\n%s\n" "$2" # Blue
-		$enable_logging && printf "$prefix%s\n%s\n" "$2" >>log.txt
+		printf "$prefix%s\n" "$2" # Blue
+		$enable_logging && printf "$prefix%s\n" "$2" >>log.txt
 	} ;;
 	*) {
-		printf "$prefix%s\n%s\n" "$2" # Magenta
-		$enable_logging && printf "$prefix%s\n%s\n" "$2" >>log.txt
+		printf "$prefix%s\n" "$2" # Magenta
+		$enable_logging && printf "$prefix%s\n" "$2" >>log.txt
 	} ;;
 	esac
 }
@@ -113,7 +113,7 @@ while :; do
 			enable_logging=true
 			;;
 		-*)
-			custom_print "error" "Unknown option: $1"
+			custom_print "error" "Unknown option: $1" true
 			exit 1
 			;;
 		*)
@@ -122,17 +122,17 @@ while :; do
 	esac
 done
 
-custom_print "debug" ""
-custom_print "debug" "########## STARTING THE SCRIPT ##########"
+custom_print "debug" "" true
+custom_print "debug" "########## STARTING THE SCRIPT ##########" true
 
 if [ "${operation_mode}" == "on-host" ]; then
 	check_dependencies() {
-		custom_print "debug" "Checking for missing dependencies..."
+		custom_print "debug" "Checking for missing dependencies..." true
 		command -v distrobox >/dev/null || { has_distrobox=false; }
 		command -v curl >/dev/null || { has_curl=false; }
 		command -v podman >/dev/null || { has_podman=false; }
 		command -v docker >/dev/null || { has_docker=false; }
-		custom_print "debug" "Here are the results: has_distrobox=$has_distrobox, has_curl=$has_curl, has_podman=$has_podman, has_docker:$has_docker"
+		custom_print "debug" "Here are the results: has_distrobox=$has_distrobox, has_curl=$has_curl, has_podman=$has_podman, has_docker:$has_docker" true
 	}
 
 	determine_install_command() {
@@ -148,21 +148,21 @@ if [ "${operation_mode}" == "on-host" ]; then
 	# START OF THE ON HOST SCRIPT
 	#
 
-	custom_print "debug" "Working on host mode"
+	custom_print "debug" "Working on host mode" true
 
 	# Checking for sudo privileges
-	custom_print "debug" "Checking for sudo privileges..."
+	custom_print "debug" "Checking for sudo privileges..." true
 	[ "$(id -u)" == 0 ] && {
-		custom_print "error" "Execute this script without sudo privileges."
+		custom_print "error" "Execute this script without sudo privileges." true
 		exit 1
 	}
-	custom_print "debug" "I'm running as a normal user"
+	custom_print "debug" "I'm running as a normal user" true
 
 	# Checking for compatibility TODO: verify from a list of tested distros
-	custom_print "debug" "Checking where I'm running..."
+	custom_print "debug" "Checking where I'm running..." true
 	distribution_name="$(lsb_release -is)"
 	distribution_release="$(lsb_release -sr)"
-	custom_print "debug" "I'm running in a $distribution_name $distribution_release machine"
+	custom_print "debug" "I'm running in a $distribution_name $distribution_release machine" true
 
 	# Checking for missing dependencies
 	has_curl=true
@@ -183,115 +183,117 @@ if [ "${operation_mode}" == "on-host" ]; then
 			[ -z "$missing_dependencies" ] || missing_dependencies="${missing_dependencies},"
 			missing_dependencies="${missing_dependencies} podman, docker (optional)"
 		}
-		custom_print "error" "Missing dependencies:$missing_dependencies."
+		custom_print "error" "Missing dependencies:$missing_dependencies." true
 
 		# Installing missing dependencies
 		$has_curl || {
 			answer="$(custom_read "yesno" "Install curl automatically? [y/n] ")"
 			[ "$answer" = "y" ] && {
-				custom_print "information" "Installing curl, this may take a while."
+				custom_print "information" "Installing curl, this may take a while." true
 				while read -r line
 				do
-				    custom_print "debug" "$line"
+				    custom_print "debug" "$line" true
 				done < <($(determine_install_command "$distribution_name") curl 2>&1)
 				has_curl=true
 				check_dependencies
 				$has_curl || {
-					custom_print "error" "Failed to install curl. Install it manually and try again."
+					custom_print "error" "Failed to install curl. Install it manually and try again." true
 					exit 1
 				}
 				$has_curl && {
-					custom_print "information" "Successfully installed curl."
+					custom_print "information" "Successfully installed curl." true
 				}
 			}
 			[ "$answer" = "n" ] && {
-				custom_print "information" "Installing curl is required. Install it manually and try again."
+				custom_print "information" "Installing curl is required. Install it manually and try again." true
 				exit 0
 			}
 		}
 		$has_distrobox || {
 			answer="$(custom_read "yesno" "Install distrobox automatically? [y/n] ")"
 			[ "$answer" = "y" ] && {
-				custom_print "information" "Installing distrobox, this may take a while."
+				custom_print "information" "Installing distrobox, this may take a while." true
 				while read -r line
 				do
-				    custom_print "debug" "$line"
+				    custom_print "debug" "$line" true
 				done < <(curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sudo sh 2>&1)
 				has_distrobox=true
 				check_dependencies
 				$has_distrobox || {
-					custom_print "error" "Failed to install distrobox. Install it manually and try again. Instructions are available here: https://github.com/89luca89/distrobox"
+					custom_print "error" "Failed to install distrobox. Install it manually and try again. Instructions are available here: https://github.com/89luca89/distrobox" true
 					exit 1
 				}
 				$has_distrobox && {
-					custom_print "information" "Successfully installed distrobox."
+					custom_print "information" "Successfully installed distrobox." true
 				}
 			}
 			[ "$answer" = "n" ] && {
-				custom_print "information" "Installing distrobox is required. Install it manually and try again. Instructions are available here: https://github.com/89luca89/distrobox"
+				custom_print "information" "Installing distrobox is required. Install it manually and try again. Instructions are available here: https://github.com/89luca89/distrobox" true
 				exit 0
 			}
 		}
 		$has_podman || $has_docker || {
 			answer="$(custom_read "range" "Install podman (0 recommended) or docker (1)? [0-1] " "0" "1")"
 			[ "$answer" = "0" ] && {
-				custom_print "information" "Installing podman, this may take a while."
+				custom_print "information" "Installing podman, this may take a while." true
 				while read -r line
 				do
-				    custom_print "debug" "$line"
+				    custom_print "debug" "$line" true
 				done < <($(determine_install_command "$distribution_name") podman 2>&1)
 				has_podman=true
 				check_dependencies
 				$has_podman || {
-					custom_print "error" "Failed to install podman. Install it manually and try again. Instructions are available here: https://podman.io/getting-started/installation"
+					custom_print "error" "Failed to install podman. Install it manually and try again. Instructions are available here: https://podman.io/getting-started/installation" true
 					exit 1
 				}
 				$has_podman && {
-					custom_print "information" "Successfully installed podman."
+					custom_print "information" "Successfully installed podman." true
 				}
 			}
 			[ "$answer" = "1" ] && {
-				custom_print "information" "Installing docker, this may take a while."
+				custom_print "information" "Installing docker, this may take a while." true
 				while read -r line
 				do
-				    custom_print "debug" "$line"
+				    custom_print "debug" "$line" true
 				done < <($(determine_install_command "$distribution_name") docker.io 2>&1)
 				has_docker=true
 				check_dependencies
 				$has_docker || {
-					custom_print "error" "Failed to install docker. Install it manually and try again. Instructions are available here: https://docs.docker.com/engine/install/"
+					custom_print "error" "Failed to install docker. Install it manually and try again. Instructions are available here: https://docs.docker.com/engine/install/" true
 					exit 1
 				}
-				custom_print "debug" "Adding the current user to the docker group."
+				custom_print "debug" "Adding the current user to the docker group." true
 				sudo groupadd docker &> /dev/null
 				sudo usermod -aG docker "$USER" &> /dev/null
 				$has_docker && {
-					custom_print "information" "Successfully installed docker."
+					custom_print "information" "Successfully installed docker." true
 				}
-				custom_print "information" "RESTART your computer to fully apply the changes and re-run this script."
+				custom_print "information" "RESTART your computer to fully apply the changes and re-run this script." true
 				exit 0
 			}
 		}
 	}
 
 	# Creating or starting the container
-	custom_print "information" "Creating the container, this may take a while."
+	custom_print "information" "Creating the container, this may take a while." true
 	while read -r line
 	do
-	    custom_print "debug" "$line"
+	    custom_print "debug" "$line" true
 	done < <(distrobox-create --image docker.io/library/archlinux:latest --name glua-care-package --yes --no-entry 2>&1)
 
 	# Setting up the container with git and yay and enabling multilib TODO: transpose flags to on-box mode
 
-	custom_print "information" "Running the script inside the container, this may take a while."
+	custom_print "information" "Running the script inside the container, this may take a while." true
 	while read -r line
 	do
-		custom_print "debug" "$line"
+		custom_print " BOX " "$line" true
 	done < <(printf " ./quartus-prime-installer.sh -ob -ed" | distrobox-enter --name glua-care-package 2>&1)
 fi
 
 if [ "${operation_mode}" == "on-box" ]; then
 	custom_print "debug" "Working in on-box mode."
+
+	
 	sudo pacman -Syu git fakeroot base-devel --noconfirm
 	git clone https://aur.archlinux.org/yay-bin.git
 	cd yay-bin || custom_print "error" "Failed to enter yay-bin directory."
