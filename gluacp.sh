@@ -105,29 +105,6 @@ determine_install_command() {
 }
 
 #
-# BOX FUNCTIONS
-#
-
-install_yay() {
-	custom_print "debug" "Installing yay..." true
-	local dependencies="base-devel "
-	command -v git >/dev/null || { dependencies+="git "; }
-	command -v fakeroot >/dev/null || { dependencies+="fakeroot "; }
-	custom_print "debug" "Installing dependencies: $dependencies" true
-	sudo pacman -Syu "$dependencies" --noconfirm
-	custom_print "debug" "Done installing dependencies." true
-	command -v yay >/dev/null || {
-		custom_print "debug" "Installing yay..." true
-		git clone https://aur.archlinux.org/yay-bin.git
-		cd yay-bin || custom_print "error" "Failed to enter yay-bin directory."
-		makepkg -si --noconfirm
-		cd .. || custom_print "error" "Failed to exit yay-bin directory."
-		rm -rf yay-bin
-		custom_print "information" "Done installing yay." true
-	}
-}
-
-#
 # DEFAULTS & ARGUMENT PARSING
 #
 
@@ -307,17 +284,37 @@ if [ "${operation_mode}" == "on-host" ]; then
 	do
 		custom_print " BOX " "$line" true
 	done < <(printf " ./gluacp.sh -ob -ed" | distrobox-enter --root glua-care-package 2>&1)
+	exit 0
 fi
 
 if [ "${operation_mode}" == "on-box" ]; then
-	custom_print "debug" "Working in on-box mode."
-	custom_print "debug" "Updating the system, this may take a while."
+	custom_print "debug" "The script is now working in on-box mode." true
+	custom_print "debug" "Updating the box, this may take a while." true
 	sudo pacman -Syyu --noconfirm
-	custom_print "debug" "Installing yay and other dependencies, this may take a while."
-	install_yay
-
+	custom_print "debug" "Preparing the box, this may take a while." true
+	sudo pacman -Syu base-devel --noconfirm
+	command -v git >/dev/null || {
+		sudo pacman -Syu git --noconfirm
+	}
+	command -v fakeroot >/dev/null || {
+		sudo pacman -Syu fakeroot --noconfirm
+	}
+	command -v yay >/dev/null || {
+		git clone https://aur.archlinux.org/yay-bin.git
+		cd yay-bin || {
+			custom_print "error" "Failed to enter yay-bin directory." true
+			exit 1
+		}
+		makepkg -si --noconfirm
+		cd .. || {
+			custom_print "error" "Failed to enter the parent directory." true
+			exit 1
+		}
+		rm -rf yay-bin
+	}
+	custom_print "debug" "Done preparing the box." true
 	
-
+	exit
 	#yay -Syu quartus-free-devinfo-cyclone --noconfirm
 fi
 
