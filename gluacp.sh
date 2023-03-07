@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# GLOBAL CONFIGURATION & FUNCTIONS
+# GLOBAL FUNCTIONS
 #
 
 custom_print() {
@@ -82,6 +82,10 @@ custom_read() {
 	$enable_logging && echo "$answer" >>log.txt
 }
 
+#
+# HOST FUNCTIONS
+#
+
 check_dependencies() {
 		custom_print "debug" "Checking for missing dependencies..." true
 		command -v distrobox >/dev/null || { has_distrobox=false; }
@@ -101,16 +105,35 @@ determine_install_command() {
 }
 
 #
-# DEFAULTS
+# BOX FUNCTIONS
+#
+
+install_yay() {
+	custom_print "debug" "Installing yay..." true
+	local dependencies="base-devel "
+	command -v git >/dev/null || { dependencies+="git "; }
+	command -v fakeroot >/dev/null || { dependencies+="fakeroot "; }
+	custom_print "debug" "Installing dependencies: $dependencies" true
+	sudo pacman -Syu "$dependencies" --noconfirm
+	custom_print "debug" "Done installing dependencies." true
+	command -v yay >/dev/null || {
+		custom_print "debug" "Installing yay..." true
+		git clone https://aur.archlinux.org/yay-bin.git
+		cd yay-bin || custom_print "error" "Failed to enter yay-bin directory."
+		makepkg -si --noconfirm
+		cd .. || custom_print "error" "Failed to exit yay-bin directory."
+		rm -rf yay-bin
+		custom_print "information" "Done installing yay." true
+	}
+}
+
+#
+# DEFAULTS & ARGUMENT PARSING
 #
 
 enable_debugging=false # Enable debugging messages
 enable_logging=false # Enable logging everything to a log.txt file
 operation_mode="on-host" # on-host or on-box (default: on-host) 
-
-#
-# ARGUMENT PARSING
-#
 
 while :; do
 	case $1 in
@@ -144,10 +167,6 @@ custom_print "debug" "" true
 custom_print "debug" "########## STARTING THE SCRIPT ##########" true
 
 if [ "${operation_mode}" == "on-host" ]; then
-	#
-	# START OF THE ON HOST SCRIPT
-	#
-
 	custom_print "debug" "Working on host mode" true
 
 	# Checking for sudo privileges
@@ -292,15 +311,14 @@ fi
 
 if [ "${operation_mode}" == "on-box" ]; then
 	custom_print "debug" "Working in on-box mode."
+	custom_print "debug" "Updating the system, this may take a while."
+	sudo pacman -Syyu --noconfirm
+	custom_print "debug" "Installing yay and other dependencies, this may take a while."
+	install_yay
 
 	
-	sudo pacman -Syu git fakeroot base-devel --noconfirm
-	git clone https://aur.archlinux.org/yay-bin.git
-	cd yay-bin || custom_print "error" "Failed to enter yay-bin directory."
-	makepkg -si --noconfirm
-	cd .. || custom_print "error" "Failed to exit yay-bin directory."
-	rm -rf yay-bin
-	yay -Syu quartus-free-devinfo-cyclone --noconfirm
+
+	#yay -Syu quartus-free-devinfo-cyclone --noconfirm
 fi
 
 
