@@ -306,7 +306,7 @@ if [ "${operation_mode}" == "on-host" ]; then
 	while read -r line
 	do
 		custom_print " BOX " "$line" true
-	done < <(printf " ./gluacp.sh -ob -ed" | distrobox-enter --root --name glua-care-package 2>&1)
+	done < <(printf " ./gluacp.sh -ob -ed" | distrobox-enter --root glua-care-package 2>&1)
 fi
 
 if [ "${operation_mode}" == "on-box" ]; then
